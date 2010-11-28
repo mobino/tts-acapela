@@ -1,5 +1,5 @@
-require File.join(File.dirname(__FILE__), "ext", "tts")
+require File.join(File.dirname(__FILE__), "ext", "acapela")
 
 include TTS
 
-puts test1
+puts synthesize("test")

@@ -1,6 +1,6 @@
 require 'mkmf'
 
-extension_name = "tts"
+extension_name = "acapela"
 
 dir_config extension_name
 
