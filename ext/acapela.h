@@ -1,7 +1,12 @@
-#include "ruby.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-VALUE TTS = Qnil;
+#include "ruby.h"
+#include "nscube.h"
 
 void Init_acapela();
 
-VALUE method_synthesize(VALUE self, VALUE text);
+VALUE acapela_initialize(VALUE self, VALUE host, VALUE port);
+
+VALUE acapela_synthesize(VALUE self, VALUE text);

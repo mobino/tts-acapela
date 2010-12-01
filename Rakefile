@@ -1,3 +1,7 @@
+require 'rubygems'
+gem 'rspec', '>= 2'
+require 'rspec'
+require 'rspec/core/rake_task'
 
 namespace :ext do
 
@@ -20,6 +24,15 @@ namespace :ext do
 
   task :build => [ :compile, :move_objects ] do
 
+  end
+
+end
+
+namespace :spec do
+
+  desc "Run all integration specs in spec/acceptance directory"
+  RSpec::Core::RakeTask.new(:acceptance => "ext:build") do |task|
+    task.pattern = "spec/acceptance/**/*_spec.rb"
   end
 
 end
