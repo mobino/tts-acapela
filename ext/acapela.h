@@ -7,6 +7,12 @@
 
 void Init_acapela();
 
-VALUE acapela_initialize(VALUE self, VALUE host, VALUE port);
+VALUE acapela_initialize(VALUE self, VALUE host, VALUE commandPort, VALUE dataPort);
 
-VALUE acapela_synthesize(VALUE self, VALUE text);
+VALUE acapela_connect(VALUE self);
+VALUE acapela_connected(VALUE self);
+VALUE acapela_disconnect(VALUE self);
+
+VALUE acapela_voices(VALUE self);
+
+VALUE acapela_synthesize(VALUE self, VALUE voice, VALUE text);
