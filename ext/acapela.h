@@ -12,9 +12,9 @@ VALUE acapela_initialize(VALUE self, VALUE host, VALUE commandPort, VALUE dataPo
 VALUE acapela_connect(VALUE self);
 VALUE acapela_connected(VALUE self);
 VALUE acapela_disconnect(VALUE self);
-
 VALUE acapela_voices(VALUE self);
 VALUE acapela_voice_set(VALUE self, VALUE value);
 VALUE acapela_voice_get(VALUE self);
-
+VALUE acapela_sample_frequency_set(VALUE self, VALUE value);
+VALUE acapela_sample_frequency_get(VALUE self);
 VALUE acapela_synthesize(VALUE self, VALUE text);

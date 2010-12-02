@@ -2,18 +2,25 @@
 
 // private functions
 
-VALUE acapelaErrorClass;
+VALUE notConnectedErrorClass;
+VALUE responseErrorClass;
+VALUE valueErrorClass;
 
 void checkConnection(const char* methodName, VALUE self) {
-  if (acapela_connected(self) == Qfalse) {
-    rb_raise(acapelaErrorClass, "method '%s' can just be executed with a open connection", methodName);
-  }
+  if (acapela_connected(self) == Qfalse)
+    rb_raise(notConnectedErrorClass, "method '%s' can just be executed with a open connection", methodName);
 }
 
-void checkResult(const char* action, nscRESULT result) {
-  if (result != NSC_OK) {
-    rb_raise(acapelaErrorClass, "error %d while performing action '%s'\n", result, action);
-  }
+void checkResponse(const char* action, nscRESULT response) {
+  if (response != NSC_OK)
+    rb_raise(responseErrorClass, "error %d while performing action '%s'\n", response, action);
+}
+
+void checkSampleFrequency(VALUE value) {
+  Check_Type(value, T_FIXNUM);
+  int sampleFrequency = NUM2INT(value);
+  if (sampleFrequency != 8000 && sampleFrequency != 11025 && sampleFrequency != 16000 && sampleFrequency != 22050)
+    rb_raise(valueErrorClass, "the given sample frequency is not supported (choose 22050, 16000, 11025 or 8000)\n");
 }
 
 int callback_speech_data(
@@ -42,7 +49,9 @@ void Init_acapela() {
   VALUE ttsModule = rb_define_module("TTS");
   VALUE acapelaClass = rb_define_class_under(ttsModule, "Acapela", rb_cObject);
   VALUE standardErrorClass = rb_const_get(rb_cObject, rb_intern("StandardError"));
-  acapelaErrorClass = rb_define_class_under(acapelaClass, "Error", standardErrorClass);
+  notConnectedErrorClass = rb_define_class_under(acapelaClass, "NotConnectedError", standardErrorClass);
+  responseErrorClass = rb_define_class_under(acapelaClass, "ResponseError", standardErrorClass);
+  valueErrorClass = rb_define_class_under(acapelaClass, "ValueError", standardErrorClass);
 
   rb_define_method(acapelaClass, "initialize", acapela_initialize, 3);
   rb_define_method(acapelaClass, "connect", acapela_connect, 0);
@@ -51,6 +60,8 @@ void Init_acapela() {
   rb_define_method(acapelaClass, "voices", acapela_voices, 0);
   rb_define_method(acapelaClass, "voice=", acapela_voice_set, 1);
   rb_define_method(acapelaClass, "voice", acapela_voice_get, 0);
+  rb_define_method(acapelaClass, "sample_frequency=", acapela_sample_frequency_set, 1);
+  rb_define_method(acapelaClass, "sample_frequency", acapela_sample_frequency_get, 0);
   rb_define_method(acapelaClass, "synthesize", acapela_synthesize, 1);
 }
 
@@ -61,7 +72,6 @@ VALUE acapela_initialize(VALUE self, VALUE host, VALUE commandPort, VALUE dataPo
 }
 
 VALUE acapela_connect(VALUE self) {
-  nscRESULT response;
   nscHSRV *serverHandle;
   nscHANDLE *dispatcherHandle;
 
@@ -73,15 +83,12 @@ VALUE acapela_connect(VALUE self) {
   VALUE dataPort = rb_ivar_get(self, rb_intern("@data_port"));
 
   serverHandle = (nscHSRV*)malloc(sizeof(nscHSRV));
-  response = nscCreateServerContextEx(NSC_AF_INET, NUM2INT(commandPort), NUM2INT(dataPort), StringValuePtr(host), serverHandle);
-  rb_ivar_set(self, rb_intern("@connection"), response == NSC_OK ? (VALUE)serverHandle : Qnil);
-
-  if (response != NSC_OK)
-    return;
+  checkResponse("connecting", nscCreateServerContextEx(NSC_AF_INET, NUM2INT(commandPort), NUM2INT(dataPort), StringValuePtr(host), serverHandle));
+  rb_ivar_set(self, rb_intern("@connection"), (VALUE)serverHandle);
 
   dispatcherHandle = (nscHANDLE*)malloc(sizeof(nscHANDLE));
-  response = nscCreateDispatcher(dispatcherHandle);
-  rb_ivar_set(self, rb_intern("@dispatcher"), response == NSC_OK ? (VALUE)dispatcherHandle : Qnil);
+  checkResponse("creating dispatcher", nscCreateDispatcher(dispatcherHandle));
+  rb_ivar_set(self, rb_intern("@dispatcher"), (VALUE)dispatcherHandle);
 }
 
 VALUE acapela_connected(VALUE self) {
@@ -89,7 +96,6 @@ VALUE acapela_connected(VALUE self) {
 }
 
 VALUE acapela_disconnect(VALUE self) {
-  nscRESULT response;
   nscHSRV *serverHandle;
   nscHANDLE *dispatcherHandle;
 
@@ -97,18 +103,14 @@ VALUE acapela_disconnect(VALUE self) {
     return;
 
   dispatcherHandle = (nscHANDLE*)rb_ivar_get(self, rb_intern("@dispatcher"));
-  response = nscDeleteDispatcher(*dispatcherHandle);
-  if (response == NSC_OK) {
-    rb_ivar_set(self, rb_intern("@dispatcher"), Qnil);
-    free(dispatcherHandle);
-  }
+  checkResponse("deleting dispatcher", nscDeleteDispatcher(*dispatcherHandle));
+  rb_ivar_set(self, rb_intern("@dispatcher"), Qnil);
+  free(dispatcherHandle);
 
   serverHandle = (nscHSRV*)rb_ivar_get(self, rb_intern("@connection"));
-  response = nscReleaseServerContext(*serverHandle);
-  if (response == NSC_OK) {
-    rb_ivar_set(self, rb_intern("@connection"), Qnil);
-    free(serverHandle);
-  }
+  checkResponse("disconnecting", nscReleaseServerContext(*serverHandle));
+  rb_ivar_set(self, rb_intern("@connection"), Qnil);
+  free(serverHandle);
 }
 
 VALUE acapela_voices(VALUE self) {
@@ -143,6 +145,15 @@ VALUE acapela_voice_get(VALUE self) {
   return rb_ivar_get(self, rb_intern("@voice"));
 }
 
+VALUE acapela_sample_frequency_set(VALUE self, VALUE value) {
+  checkSampleFrequency(value);
+  rb_ivar_set(self, rb_intern("@sample_frequency"), value);
+}
+
+VALUE acapela_sample_frequency_get(VALUE self) {
+  return rb_ivar_get(self, rb_intern("@sample_frequency"));
+}
+
 VALUE acapela_synthesize(VALUE self, VALUE text) {
   VALUE result;
 
@@ -150,6 +161,7 @@ VALUE acapela_synthesize(VALUE self, VALUE text) {
   nscHSRV* serverHandle;
   nscHANDLE* dispatcherHandle;
   VALUE voice;
+  int sampleFrequency;
   nscHANDLE ttsHandle;
   NSC_EXEC_DATA executionData;
   char* filename;
@@ -161,19 +173,20 @@ VALUE acapela_synthesize(VALUE self, VALUE text) {
   serverHandle = (nscHSRV*)rb_ivar_get(self, rb_intern("@connection"));
   dispatcherHandle = (nscHANDLE*)rb_ivar_get(self, rb_intern("@dispatcher"));
   voice = rb_ivar_get(self, rb_intern("@voice"));
+  sampleFrequency = rb_ivar_get(self, rb_intern("@sample_frequency"));
 
-  checkResult("opening channel", nscInitChannel(*serverHandle, StringValuePtr(voice), 0, 0, *dispatcherHandle, &channelId));
-  checkResult("lock channel", nscLockChannel(*serverHandle, channelId, *dispatcherHandle, &ttsHandle));
-  checkResult("add text", nscAddText(ttsHandle, StringValuePtr(text), NULL));
+  checkResponse("opening channel", nscInitChannel(*serverHandle, StringValuePtr(voice), NUM2INT(sampleFrequency), 0, *dispatcherHandle, &channelId));
+  checkResponse("lock channel", nscLockChannel(*serverHandle, channelId, *dispatcherHandle, &ttsHandle));
+  checkResponse("add text", nscAddText(ttsHandle, StringValuePtr(text), NULL));
 
   filename = tmpnam(NULL);
   file = fopen(filename, "w");
   initializeExecutionData(&executionData, file);
-  checkResult("execute channel", nscExecChannel(ttsHandle, &executionData));
+  checkResponse("execute channel", nscExecChannel(ttsHandle, &executionData));
   fclose(file);
 
-  checkResult("unlock channel", nscUnlockChannel(ttsHandle));
-  checkResult("closing channel", nscCloseChannel(*serverHandle, channelId));
+  checkResponse("unlock channel", nscUnlockChannel(ttsHandle));
+  checkResponse("closing channel", nscCloseChannel(*serverHandle, channelId));
 
   VALUE fileClass = rb_const_get(rb_cObject, rb_intern("File"));
   result = rb_funcall(fileClass, rb_intern("new"), 1, rb_str_new2(filename));

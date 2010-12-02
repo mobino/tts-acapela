@@ -8,11 +8,11 @@ describe TTS::Acapela do
 
   shared_examples_for "a method that need an open connection" do
 
-    it "should raise an #{TTS::Acapela::Error} if disconnected" do
+    it "should raise an #{TTS::Acapela::NotConnectedError} if disconnected" do
       @acapela.disconnect
       lambda do
         do_call
-      end.should raise_error(TTS::Acapela::Error);
+      end.should raise_error(TTS::Acapela::NotConnectedError);
     end
 
   end
@@ -91,6 +91,25 @@ describe TTS::Acapela do
     it "should set the voice" do
       @acapela.voice = "sarah22k"
       @acapela.voice.should == "sarah22k"
+    end
+
+  end
+
+  describe "sample_frequency=" do
+
+    it "should set the sample frequency" do
+      @acapela.sample_frequency = 22050
+      @acapela.sample_frequency == 22050
+    end
+
+    it "should raise an #{TTS::Acapela::ValueError} on an invalid value" do
+      lambda do
+        @acapela.sample_frequency = 5
+      end.should raise_error(TTS::Acapela::ValueError)
+
+      lambda do
+        @acapela.sample_frequency = "invalid"
+      end.should raise_error(TypeError)
     end
 
   end
