@@ -1,6 +1,6 @@
 
 module TTS
 
-  autoload :Acapela, File.expand_path(File.join(File.dirname(__FILE__), "..", "ext", "acapela"))
+  autoload :Acapela, File.join(File.dirname(__FILE__), "tts", "acapela")
 
 end

@@ -16,13 +16,6 @@ void checkResponse(const char* action, nscRESULT response) {
     rb_raise(responseErrorClass, "error %d while performing action '%s'\n", response, action);
 }
 
-void checkSampleFrequency(VALUE value) {
-  Check_Type(value, T_FIXNUM);
-  int sampleFrequency = NUM2INT(value);
-  if (sampleFrequency != 8000 && sampleFrequency != 11025 && sampleFrequency != 16000 && sampleFrequency != 22050)
-    rb_raise(valueErrorClass, "the given sample frequency is not supported (choose 22050, 16000, 11025 or 8000)\n");
-}
-
 int callback_speech_data(
   const unsigned char *data,
   unsigned int dataSize,
@@ -48,27 +41,15 @@ void initializeExecutionData(NSC_EXEC_DATA* executionData, FILE *file) {
 void Init_acapela() {
   VALUE ttsModule = rb_define_module("TTS");
   VALUE acapelaClass = rb_define_class_under(ttsModule, "Acapela", rb_cObject);
-  VALUE standardErrorClass = rb_const_get(rb_cObject, rb_intern("StandardError"));
-  notConnectedErrorClass = rb_define_class_under(acapelaClass, "NotConnectedError", standardErrorClass);
-  responseErrorClass = rb_define_class_under(acapelaClass, "ResponseError", standardErrorClass);
-  valueErrorClass = rb_define_class_under(acapelaClass, "ValueError", standardErrorClass);
+  notConnectedErrorClass = rb_const_get(acapelaClass, rb_intern("NotConnectedError"));
+  responseErrorClass = rb_const_get(acapelaClass, rb_intern("ResponseError"));
+  valueErrorClass = rb_const_get(acapelaClass, rb_intern("ValueError"));
 
-  rb_define_method(acapelaClass, "initialize", acapela_initialize, 3);
   rb_define_method(acapelaClass, "connect", acapela_connect, 0);
   rb_define_method(acapelaClass, "connected?", acapela_connected, 0);
   rb_define_method(acapelaClass, "disconnect", acapela_disconnect, 0);
   rb_define_method(acapelaClass, "voices", acapela_voices, 0);
-  rb_define_method(acapelaClass, "voice=", acapela_voice_set, 1);
-  rb_define_method(acapelaClass, "voice", acapela_voice_get, 0);
-  rb_define_method(acapelaClass, "sample_frequency=", acapela_sample_frequency_set, 1);
-  rb_define_method(acapelaClass, "sample_frequency", acapela_sample_frequency_get, 0);
   rb_define_method(acapelaClass, "synthesize", acapela_synthesize, 1);
-}
-
-VALUE acapela_initialize(VALUE self, VALUE host, VALUE commandPort, VALUE dataPort) {
-  rb_ivar_set(self, rb_intern("@host"), host);
-  rb_ivar_set(self, rb_intern("@command_port"), commandPort);
-  rb_ivar_set(self, rb_intern("@data_port"), dataPort);
 }
 
 VALUE acapela_connect(VALUE self) {
@@ -135,23 +116,6 @@ VALUE acapela_voices(VALUE self) {
   nscCloseFindVoice(voiceHandle);
 
   return result;
-}
-
-VALUE acapela_voice_set(VALUE self, VALUE value) {
-  rb_ivar_set(self, rb_intern("@voice"), value);
-}
-
-VALUE acapela_voice_get(VALUE self) {
-  return rb_ivar_get(self, rb_intern("@voice"));
-}
-
-VALUE acapela_sample_frequency_set(VALUE self, VALUE value) {
-  checkSampleFrequency(value);
-  rb_ivar_set(self, rb_intern("@sample_frequency"), value);
-}
-
-VALUE acapela_sample_frequency_get(VALUE self) {
-  return rb_ivar_get(self, rb_intern("@sample_frequency"));
 }
 
 VALUE acapela_synthesize(VALUE self, VALUE text) {

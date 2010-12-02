@@ -3,7 +3,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), "..", "spec_helper"))
 describe TTS::Acapela do
 
   before :each do
-    @acapela = described_class.new "46.51.190.56", 6666, 6665
+    @acapela = described_class.new :host => "46.51.190.56"
   end
 
   shared_examples_for "a method that need an open connection" do
@@ -86,15 +86,6 @@ describe TTS::Acapela do
 
   end
 
-  describe "voice=" do
-
-    it "should set the voice" do
-      @acapela.voice = "sarah22k"
-      @acapela.voice.should == "sarah22k"
-    end
-
-  end
-
   describe "sample_frequency=" do
 
     it "should set the sample frequency" do
@@ -109,7 +100,7 @@ describe TTS::Acapela do
 
       lambda do
         @acapela.sample_frequency = "invalid"
-      end.should raise_error(TypeError)
+      end.should raise_error(TTS::Acapela::ValueError)
     end
 
   end
