@@ -14,5 +14,7 @@ VALUE acapela_connected(VALUE self);
 VALUE acapela_disconnect(VALUE self);
 
 VALUE acapela_voices(VALUE self);
+VALUE acapela_voice_set(VALUE self, VALUE value);
+VALUE acapela_voice_get(VALUE self);
 
-VALUE acapela_synthesize(VALUE self, VALUE voice, VALUE text);
+VALUE acapela_synthesize(VALUE self, VALUE text);

@@ -49,7 +49,9 @@ void Init_acapela() {
   rb_define_method(acapelaClass, "connected?", acapela_connected, 0);
   rb_define_method(acapelaClass, "disconnect", acapela_disconnect, 0);
   rb_define_method(acapelaClass, "voices", acapela_voices, 0);
-  rb_define_method(acapelaClass, "synthesize", acapela_synthesize, 2);
+  rb_define_method(acapelaClass, "voice=", acapela_voice_set, 1);
+  rb_define_method(acapelaClass, "voice", acapela_voice_get, 0);
+  rb_define_method(acapelaClass, "synthesize", acapela_synthesize, 1);
 }
 
 VALUE acapela_initialize(VALUE self, VALUE host, VALUE commandPort, VALUE dataPort) {
@@ -133,28 +135,34 @@ VALUE acapela_voices(VALUE self) {
   return result;
 }
 
-VALUE acapela_synthesize(VALUE self, VALUE voice, VALUE text) {
+VALUE acapela_voice_set(VALUE self, VALUE value) {
+  rb_ivar_set(self, rb_intern("@voice"), value);
+}
+
+VALUE acapela_voice_get(VALUE self) {
+  return rb_ivar_get(self, rb_intern("@voice"));
+}
+
+VALUE acapela_synthesize(VALUE self, VALUE text) {
   VALUE result;
 
   nscRESULT response;
-  nscHSRV *serverHandle;
-  nscHANDLE *dispatcherHandle;
+  nscHSRV* serverHandle;
+  nscHANDLE* dispatcherHandle;
+  VALUE voice;
   nscHANDLE ttsHandle;
   NSC_EXEC_DATA executionData;
   char* filename;
-  FILE *file;
-
-  char *voiceName;
+  FILE* file;
   nscCHANID channelId;
 
   checkConnection("synthesize", self);
 
   serverHandle = (nscHSRV*)rb_ivar_get(self, rb_intern("@connection"));
   dispatcherHandle = (nscHANDLE*)rb_ivar_get(self, rb_intern("@dispatcher"));
+  voice = rb_ivar_get(self, rb_intern("@voice"));
 
-  voiceName = StringValuePtr(voice);
-
-  checkResult("opening channel", nscInitChannel(*serverHandle, voiceName, 0, 0, *dispatcherHandle, &channelId));
+  checkResult("opening channel", nscInitChannel(*serverHandle, StringValuePtr(voice), 0, 0, *dispatcherHandle, &channelId));
   checkResult("lock channel", nscLockChannel(*serverHandle, channelId, *dispatcherHandle, &ttsHandle));
   checkResult("add text", nscAddText(ttsHandle, StringValuePtr(text), NULL));
 

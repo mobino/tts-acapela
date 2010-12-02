@@ -86,10 +86,20 @@ describe TTS::Acapela do
 
   end
 
+  describe "voice=" do
+
+    it "should set the voice" do
+      @acapela.voice = "sarah22k"
+      @acapela.voice.should == "sarah22k"
+    end
+
+  end
+
   describe "synthesize" do
 
     before :each do
       @acapela.connect
+      @acapela.voice = "sarah22k"
     end
 
     after :each do
@@ -97,7 +107,7 @@ describe TTS::Acapela do
     end
 
     def do_call
-      @acapela.synthesize "sarah22k", "Hallo Welt"
+      @acapela.synthesize "Hallo Welt"
     end
 
     it_should_behave_like "a method that need an open connection"
