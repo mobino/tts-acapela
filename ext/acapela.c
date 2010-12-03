@@ -145,7 +145,7 @@ VALUE acapela_synthesize(VALUE self, VALUE text) {
 
   checkResponse("opening channel", nscInitChannel(*serverHandle, StringValuePtr(voice), NUM2INT(sampleFrequency), 0, *dispatcherHandle, &channelId));
   checkResponse("lock channel", nscLockChannel(*serverHandle, channelId, *dispatcherHandle, &ttsHandle));
-  checkResponse("add text", nscAddText(ttsHandle, StringValuePtr(text), NULL));
+  checkResponse("add text", nscAddTextEx(ttsHandle, "UTF-8", StringValuePtr(text), strlen(StringValuePtr(text)), NULL));
 
   filename = tmpnam(NULL);
   file = fopen(filename, "w");

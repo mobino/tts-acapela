@@ -1,3 +1,4 @@
+# encoding: utf-8
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "spec_helper"))
 
 describe TTS::Acapela do
@@ -109,11 +110,10 @@ describe TTS::Acapela do
       @file.should be_instance_of(File)
     end
 
-    context "with voice 'julia22k' and sample frequency '22050'" do
+    context "with voice 'julia22k'" do
 
       before :each do
         @acapela.voice = "julia22k"
-        @acapela.sample_frequency = 22050
       end
 
       it "should return the correct file" do
@@ -124,17 +124,27 @@ describe TTS::Acapela do
 
     end
 
-    context "with voice 'julia22k' and sample frequency '11025'" do
+    context "with voice 'lucy22k'" do
 
       before :each do
-        @acapela.voice = "julia22k"
-        @acapela.sample_frequency = 11025
+        @acapela.voice = "lucy22k"
       end
 
       it "should return the correct file" do
-        @file = do_call "test ok"
+        @file = do_call
         md5 = Digest::MD5.hexdigest File.read(@file.path)
-        md5.should == "257df7f7972f794f4759ac97042faf97"
+        md5.should == "8288953a25090a2089b86ac324e582dc"
+      end
+
+    end
+
+    context "with a text with special characters" do
+
+      it "should return the correct file" do
+        @file = do_call "Schönhauser-Allee"
+        `cp #{@file.path} /home/phifty/Desktop/test.pcm`
+        md5 = Digest::MD5.hexdigest File.read(@file.path)
+        md5.should == "bf3ab75c5b55b4815e810ac6b0c83ee0"
       end
 
     end
