@@ -16,11 +16,11 @@ module TTS
     attr_reader   :sample_frequency
 
     def initialize(options = { })
-      @host, @command_port, @data_port, @voice, @sample_frequency = options.values_at :host, :command_port, :data_port, :voice, :sample_frequency
-      @host ||= "127.0.0.1"
-      @command_port ||= 6666
-      @data_port ||= 6665
-      @sample_frequency ||= 22050
+      self.host             = options[:host]             || "127.0.0.1"
+      self.command_port     = options[:command_port]     || 6666
+      self.data_port        = options[:data_port]        || 6665
+      self.voice            = options[:voice]
+      self.sample_frequency = options[:sample_frequency] || 22050
     end
 
     def sample_frequency=(value)
