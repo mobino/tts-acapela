@@ -57,7 +57,7 @@ VALUE acapela_connect(VALUE self) {
   nscHANDLE *dispatcherHandle;
 
   if (acapela_connected(self) == Qtrue)
-    return;
+    return Qfalse;
 
   VALUE host = rb_ivar_get(self, rb_intern("@host"));
   VALUE commandPort = rb_ivar_get(self, rb_intern("@command_port"));
@@ -70,6 +70,8 @@ VALUE acapela_connect(VALUE self) {
   dispatcherHandle = (nscHANDLE*)malloc(sizeof(nscHANDLE));
   checkResponse("creating dispatcher", nscCreateDispatcher(dispatcherHandle));
   rb_ivar_set(self, rb_intern("@dispatcher"), (VALUE)dispatcherHandle);
+
+  return Qtrue;
 }
 
 VALUE acapela_connected(VALUE self) {
@@ -81,7 +83,7 @@ VALUE acapela_disconnect(VALUE self) {
   nscHANDLE *dispatcherHandle;
 
   if (acapela_connected(self) == Qfalse)
-    return;
+    return Qfalse;
 
   dispatcherHandle = (nscHANDLE*)rb_ivar_get(self, rb_intern("@dispatcher"));
   checkResponse("deleting dispatcher", nscDeleteDispatcher(*dispatcherHandle));
@@ -92,6 +94,8 @@ VALUE acapela_disconnect(VALUE self) {
   checkResponse("disconnecting", nscReleaseServerContext(*serverHandle));
   rb_ivar_set(self, rb_intern("@connection"), Qnil);
   free(serverHandle);
+
+  return Qtrue;
 }
 
 VALUE acapela_voices(VALUE self) {
