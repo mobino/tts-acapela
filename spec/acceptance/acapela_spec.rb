@@ -1,4 +1,5 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "spec_helper"))
+require 'digest/md5'
 
 describe TTS::Acapela do
 
@@ -116,8 +117,8 @@ describe TTS::Acapela do
       @acapela.disconnect
     end
 
-    def do_call
-      @acapela.synthesize "Hallo Welt"
+    def do_call(text = "Hallo Welt")
+      @acapela.synthesize text
     end
 
     it_should_behave_like "a method that need an open connection"
@@ -125,6 +126,36 @@ describe TTS::Acapela do
     it "should return a file with the synthesized text" do
       file = do_call
       file.should be_instance_of(File)
+    end
+
+    context "with voice 'julia22k' and sample frequency '22050'" do
+
+      before :each do
+        @acapela.voice = "julia22k"
+        @acapela.sample_frequency = 22050
+      end
+
+      it "should return the correct file" do
+        file = do_call
+        md5 = Digest::MD5.hexdigest File.read(file.path)
+        md5.should == "7e50b6c1666ec97be6c84b9dacf0ef89"
+      end
+
+    end
+
+    context "with voice 'julia22k' and sample frequency '11025'" do
+
+      before :each do
+        @acapela.voice = "julia22k"
+        @acapela.sample_frequency = 11025
+      end
+
+      it "should return the correct file" do
+        file = do_call "test ok"
+        md5 = Digest::MD5.hexdigest File.read(file.path)
+        md5.should == "257df7f7972f794f4759ac97042faf97"
+      end
+
     end
 
   end
