@@ -1,3 +1,4 @@
+require 'digest/md5'
 
 module TTS
 
@@ -14,6 +15,7 @@ module TTS
     attr_accessor :data_port
     attr_accessor :voice
     attr_reader   :sample_frequency
+    attr_accessor :cache_directory
 
     def initialize(options = { })
       self.host             = options[:host]             || "127.0.0.1"
@@ -21,11 +23,16 @@ module TTS
       self.data_port        = options[:data_port]        || 6665
       self.voice            = options[:voice]
       self.sample_frequency = options[:sample_frequency] || 22050
+      self.cache_directory  = options[:cache_directory]  || "/tmp"
     end
 
     def sample_frequency=(value)
       raise ValueError, "sample frequency #{value} is not supported. try 22050, 16000, 11025 or 8000." unless [ 22050, 16000, 11025, 8000 ].include?(value)
       @sample_frequency = value
+    end
+
+    def settings_stamp
+      "#{@voice}#{@sample_frequency}"
     end
 
   end
