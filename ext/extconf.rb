@@ -2,9 +2,9 @@ require 'mkmf'
 
 extension_name = "acapela"
 
-dir_config extension_name, "/opt/Acapela/TelecomTTS/include"
+dir_config extension_name, "/opt/Acapela/TTS-Server/include"
 
-found_nscube = find_library "nscube", "nscCreateServerContext", "/opt/Acapela/TelecomTTS/lib"
+found_nscube = find_library "nscube", "nscCreateServerContext", "/opt/Acapela/TTS-Server/lib"
 
 if found_nscube
   create_makefile extension_name

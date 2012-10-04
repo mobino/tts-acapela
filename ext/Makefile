@@ -60,7 +60,7 @@ warnflags = -Wextra -Wno-unused-parameter -Wno-parentheses -Wpointer-arith -Wwri
 CFLAGS   = -fPIC  $(ARCH_FLAG) -fPIC -m32
 INCFLAGS = -I. -I$(arch_hdrdir) -I$(hdrdir)/ruby/backward -I$(hdrdir) -I$(srcdir)
 DEFS     = -D_FILE_OFFSET_BITS=64
-CPPFLAGS =  -I/opt/Acapela/TelecomTTS/include/include  $(DEFS) $(cppflags)
+CPPFLAGS =  -I/opt/Acapela/TTS-Server/include/include  $(DEFS) $(cppflags)
 CXXFLAGS = $(CFLAGS) $(ARCH_FLAG)
 ldflags  = -L.  $(ARCH_FLAG) -rdynamic -Wl,-export-dynamic
 dldflags = 
@@ -92,8 +92,8 @@ COPY = cp
 
 preload = 
 
-libpath = . $(libdir) /opt/Acapela/TelecomTTS/include/lib
-LIBPATH =  -L. -L$(libdir) -Wl,-R$(libdir) -L/opt/Acapela/TelecomTTS/include/lib -Wl,-R/opt/Acapela/TelecomTTS/include/lib
+libpath = . $(libdir) /opt/Acapela/TTS-Server/include/lib
+LIBPATH =  -L. -L$(libdir) -Wl,-R$(libdir) -L/opt/Acapela/TTS-Server/include/lib -Wl,-R/opt/Acapela/TTS-Server/include/lib
 DEFFILE = 
 
 CLEANFILES = mkmf.log
