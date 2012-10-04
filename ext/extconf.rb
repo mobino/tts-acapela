@@ -2,7 +2,7 @@ require 'mkmf'
 
 extension_name = "acapela"
 
-dir_config extension_name, "/opt/Acapela/TTS-Server/include"
+dir_config extension_name, "/opt/Acapela/TTS-Server"
 
 found_nscube = find_library "nscube", "nscCreateServerContext", "/opt/Acapela/TTS-Server/lib"
 
