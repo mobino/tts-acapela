@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |specification|
   specification.name                  = "tts-acapela"
-  specification.version               = "0.1.0"
+  specification.version               = "0.1.1"
   specification.date                  = "2010-12-03"
 
   specification.authors               = [ "Philipp Brüll" ]
